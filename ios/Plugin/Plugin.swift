@@ -9,42 +9,40 @@ import GoogleSignIn
 @objc(GoogleAuth)
 public class GoogleAuth: CAPPlugin {
     private var signInCall: CAPPluginCall!
-    private var googleSignIn: GIDSignIn!;
-    private var googleSignInConfiguration: GIDConfiguration!;
-    private var forceAuthCode: Bool = false;
-    private var additionalScopes: [String]!;
+    private var googleSignIn = {
+        return GIDSignIn.sharedInstance
+    }()
+    private var googleSignInConfiguration: GIDConfiguration!
+    private var forceAuthCode: Bool = false
+    private var additionalScopes: [String]!
     
     // these are scopes granted by default by the signIn method
     private let defaultGrantedScopes = ["email", "profile", "openid"];
 
-
-    /// On plugin load, we want to load static config using capacitor.config.js
-    /// In case you don't need to use dynamic configuration, like using different clientIds or scopes in different flows
-    /// then it is a way to configure the plugin. The other way- is the initialize method which will override
-    /// corresponding settings.
+    /// On plugin load, we want to load static configuration using capacitor.config.js
+    /// In case you want to use dynamic configuration, you can override this values
+    /// at `initialize` method call.
     public override func load() {
         guard let staticConfigClientId = self.getClientIdValue() else {
             NSLog("No client id found in config")
             return;
         }
-        
-        googleSignIn = GIDSignIn.sharedInstance;
-        
+                
         let staticConfigServerClientId = self.getConfigValue("serverClientId") as? String
         let staticConfigScopes = self.getConfigValue("scopes") as? [String] ?? []
         
         self.googleSignInConfiguration = GIDConfiguration.init(clientID: staticConfigClientId,
-                                                          serverClientID: staticConfigServerClientId)
+                                                               serverClientID: staticConfigServerClientId)
         self.additionalScopes = self.getAdditionalScopes(scopes: staticConfigScopes)
         self.forceAuthCode = self.getConfigValue("forceCodeForRefreshToken") as? Bool ?? false
                 
         NotificationCenter.default.addObserver(self, selector: #selector(handleOpenUrl(_ :)), name: Notification.Name(Notification.Name.capacitorOpenURL.rawValue), object: nil);
     }
 
-    /// By passing options in the initialize call, you will override values that were loaded from static config.
-    /// The values that does not overlap will remain unchanged.
-    ///
-    /// This can be used to re-configure the plugin in the runtime.
+    /// By passing options in the `initialize` call, you will override values that
+    /// were loaded from static config. The existing values that do not overlap will
+    /// remain unchanged. If both `clientId` and `iosClientId` are passed,
+    /// `iosClientId` will be used.
     @objc
     func initialize(_ call: CAPPluginCall) {
         let scopes: [String] = call.getArray("scopes", String.self) ?? []
@@ -52,12 +50,12 @@ public class GoogleAuth: CAPPlugin {
 
         if let clientId: String = call.getString("clientId") {
             self.googleSignInConfiguration = GIDConfiguration.init(clientID: clientId,
-                                                              serverClientID: serverClientId)
+                                                                   serverClientID: serverClientId)
         }
         // will override clientId if passed
         if let iosClientId: String = call.getString("iosClientId") {
             self.googleSignInConfiguration = GIDConfiguration.init(clientID: iosClientId,
-                                                              serverClientID: serverClientId)
+                                                                   serverClientID: serverClientId)
         }
         
         self.forceAuthCode = call.getBool("forceCodeForRefreshToken") ?? false
