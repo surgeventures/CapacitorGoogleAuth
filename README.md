@@ -138,7 +138,7 @@ or see more [CapacitorGoogleAuth-Vue3-example](https://github.com/reslear/Capaci
       - `clientId` - or common key for Android and iOS
    2. Download `GoogleService-Info.plist` file with `CLIENT_ID` and copy to **ios/App/App** necessarily through Xcode for indexing.
    3. Configure dynamically using `GoogleSignIn.initialize()` during runtime:
-      - `clientId` - or common key for Android and iOS
+      - `clientId` - common key for Android and iOS
       - `iosClientId` - specific key for iOS, which will be preferred if was passed along with `clientId`
       - `serverClientId` - a 'Web application clientID created at GCP, used for offline access
       - `scopes` - an array of scopes required at sign in
@@ -157,7 +157,7 @@ Set **Client ID** :
 
 2. or set inside your `strings.xml`
 
-plugin first use `androidClientId` if not found use `clientId` if not found use value `server_client_id` from file `strings.xml`
+Value from `capacitor.config.json` is the preferred one. If it is missing, a value from `strings.xml` will be used.
 
 ```xml
 <resources>
