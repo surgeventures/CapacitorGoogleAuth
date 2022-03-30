@@ -151,11 +151,12 @@ Set **Client ID** :
 
 2. or set inside your `strings.xml`
 
-plugin first use `androidClientId` if not found use `clientId` if not found use value `server_client_id` from file `strings.xml`
+plugin first use `androidClientId` if not found use `clientId` if not found use value `client_id` from file `strings.xml`
 
 ```xml
 <resources>
   <string name="server_client_id">Your Web Client Key</string>
+  <string name="client_id">Your Android Client Key</string>
 </resources>
 ```
 
