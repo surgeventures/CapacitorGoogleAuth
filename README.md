@@ -137,6 +137,13 @@ or see more [CapacitorGoogleAuth-Vue3-example](https://github.com/reslear/Capaci
       - `iosClientId` - specific key for iOS
       - `clientId` - or common key for Android and iOS
    2. Download `GoogleService-Info.plist` file with `CLIENT_ID` and copy to **ios/App/App** necessarily through Xcode for indexing.
+   3. Configure dynamically using `GoogleSignIn.initialize()` during runtime:
+      - `clientId` - common key for Android and iOS
+      - `iosClientId` - specific key for iOS, which will be preferred if was passed along with `clientId`
+      - `serverClientId` - a 'Web application clientID created at GCP, used for offline access
+      - `scopes` - an array of scopes required at sign in
+      - `forceCodeForRefreshToken` - a boolean that will force user to select the account and get server authCode for offline access
+
 
 plugin first use `iosClientId` if not found use `clientId` if not found use value `CLIENT_ID` from file `GoogleService-Info.plist`
 
@@ -146,12 +153,11 @@ Set **Client ID** :
 
 1. In `capacitor.config.json`
 
-   - `androidClientId` - specific key for Android
-   - `clientId` - or common key for Android and iOS
+   - `serverClientId` - a 'Web application clientID created at GCP. If not found- will fall back to #2.
 
 2. or set inside your `strings.xml`
 
-plugin first use `androidClientId` if not found use `clientId` if not found use value `server_client_id` from file `strings.xml`
+Value from `capacitor.config.json` is the preferred one. If it is missing, a value from `strings.xml` will be used.
 
 ```xml
 <resources>
@@ -159,19 +165,14 @@ plugin first use `androidClientId` if not found use `clientId` if not found use 
 </resources>
 ```
 
-Import package inside your `MainActivity`
+3. or configured dynamically using `GoogleSignIn.initialize()` during runtime:
 
-```java
-import com.codetrixstudio.capacitor.GoogleAuth.GoogleAuth;
-```
+   - `serverClientId` - a 'Web application clientID created at GCP (will fall back to #2 if not found). Used for offline access.
+   - `scopes` - an array of scopes required at sign in
+   - `forceCodeForRefreshToken` - a boolean that will force user to select the account and get server authCode for offline access
 
-Register plugin inside your `MainActivity.onCreate`
 
-```java
-this.init(savedInstanceState, new ArrayList<Class<? extends Plugin>>() {{
-  add(GoogleAuth.class);
-}});
-```
+In Capacitor 3 plugins are [loaded automatically](https://capacitorjs.com/docs/updating/3-0#switch-to-automatic-android-plugin-loading), so no manual initialization in `MainActivity` is required.
 
 ## Configure
 

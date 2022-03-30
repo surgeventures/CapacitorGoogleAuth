@@ -10,6 +10,7 @@ import android.util.Log;
 import androidx.activity.result.ActivityResult;
 
 import com.codetrixstudio.capacitor.GoogleAuth.capacitorgoogleauth.R;
+import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -34,6 +35,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -53,27 +55,15 @@ public class GoogleAuth extends Plugin {
 
   @Override
   public void load() {
-    String clientId = getConfig().getString("androidClientId",
-      getConfig().getString("clientId",
-        this.getContext().getString(R.string.server_client_id)));
+    String serverClientId = getConfig().getString("serverClientId",
+        this.getContext().getString(R.string.server_client_id));
 
     boolean forceCodeForRefreshToken = getConfig().getBoolean("forceCodeForRefreshToken", false);
 
-    GoogleSignInOptions.Builder googleSignInBuilder = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(clientId)
-            .requestEmail();
-
-    if (forceCodeForRefreshToken) {
-      googleSignInBuilder.requestServerAuthCode(clientId, true);
-    }
+    GoogleSignInOptions.Builder googleSignInBuilder = initializeGoogleSignInBuilder(forceCodeForRefreshToken, serverClientId);
 
     String[] scopeArray = getConfig().getArray("scopes", new String[] {});
-    Scope[] scopes = new Scope[scopeArray.length - 1];
-    Scope firstScope = new Scope(scopeArray[0]);
-    for (int i = 1; i < scopeArray.length; i++) {
-      scopes[i - 1] = new Scope(scopeArray[i]);
-    }
-    googleSignInBuilder.requestScopes(firstScope, scopes);
+    requestScopes(googleSignInBuilder, scopeArray);
 
     GoogleSignInOptions googleSignInOptions = googleSignInBuilder.build();
     googleSignInClient = GoogleSignIn.getClient(this.getContext(), googleSignInOptions);
@@ -146,7 +136,55 @@ public class GoogleAuth extends Plugin {
 
   @PluginMethod()
   public void initialize(final PluginCall call) {
+    String serverClientId = call.getString("serverClientId",
+                    this.getContext().getString(R.string.server_client_id));
+
+    boolean forceCodeForRefreshToken = call.getBoolean("forceCodeForRefreshToken", false);
+
+    GoogleSignInOptions.Builder googleSignInBuilder = initializeGoogleSignInBuilder(forceCodeForRefreshToken, serverClientId);
+
+    try {
+      JSArray scopeArray = call.getArray("scopes", new JSArray("[]"));
+      requestScopes(googleSignInBuilder, toStringArray(scopeArray));
+    } catch (JSONException e) {
+      Log.e("JSONException", e.getMessage());
+      call.reject(e.getMessage());
+    }
+
+    GoogleSignInOptions googleSignInOptions = googleSignInBuilder.build();
+    googleSignInClient = GoogleSignIn.getClient(this.getContext(), googleSignInOptions);
+
     call.resolve();
+  }
+
+  private GoogleSignInOptions.Builder initializeGoogleSignInBuilder(boolean forceCodeForRefreshToken, String serverClientId) {
+    GoogleSignInOptions.Builder googleSignInBuilder = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestEmail();
+
+    // next step: rework this to actually be based on `grantOfflineAccess` + pass 'forceCode...' as 2nd param
+    if (forceCodeForRefreshToken) {
+      googleSignInBuilder.requestServerAuthCode(serverClientId, true);
+    } else {
+      googleSignInBuilder.requestIdToken(serverClientId);
+    }
+
+    return googleSignInBuilder;
+  }
+
+  private String[] toStringArray(JSArray scopesArray) throws JSONException {
+    List<String> scopesList = scopesArray.toList();
+
+    return scopesList.toArray(new String[] {});
+  }
+
+  private void requestScopes(GoogleSignInOptions.Builder googleSignInBuilder, String[] scopeArray) {
+    Scope[] scopes = new Scope[scopeArray.length - 1];
+    Scope firstScope = new Scope(scopeArray[0]);
+    for (int i = 1; i < scopeArray.length; i++) {
+      scopes[i - 1] = new Scope(scopeArray[i]);
+    }
+
+    googleSignInBuilder.requestScopes(firstScope, scopes);
   }
 
   // Logic to retrieve accessToken, see https://github.com/EddyVerbruggen/cordova-plugin-googleplus/blob/master/src/android/GooglePlus.java

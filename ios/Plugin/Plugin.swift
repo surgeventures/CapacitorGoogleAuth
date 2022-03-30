@@ -8,42 +8,58 @@ import GoogleSignIn
  */
 @objc(GoogleAuth)
 public class GoogleAuth: CAPPlugin {
-    var signInCall: CAPPluginCall!
-    var googleSignIn: GIDSignIn!;
-    var googleSignInConfiguration: GIDConfiguration!;
-    var forceAuthCode: Bool = false;
-    var additionalScopes: [String]!;
-
+    private var signInCall: CAPPluginCall!
+    private var googleSignIn = {
+        return GIDSignIn.sharedInstance
+    }()
+    private var googleSignInConfiguration: GIDConfiguration!
+    private var forceAuthCode: Bool = false
+    private var additionalScopes: [String]!
     
+    // these are scopes granted by default by the signIn method
+    private let defaultGrantedScopes = ["email", "profile", "openid"];
+
+    /// On plugin load, we want to load static configuration using capacitor.config.js
+    /// In case you want to use dynamic configuration, you can override this values
+    /// at `initialize` method call.
     public override func load() {
-        googleSignIn = GIDSignIn.sharedInstance;
-        
-        let serverClientId = getServerClientIdValue();
-        
-        guard let clientId = getClientIdValue() else {
-            NSLog("no client id found in config")
+        guard let staticConfigClientId = self.getClientIdValue() else {
+            NSLog("No client id found in config")
             return;
         }
-
-        googleSignInConfiguration = GIDConfiguration.init(clientID: clientId, serverClientID: serverClientId)
-        
-        // these are scopes granted by default by the signIn method
-        let defaultGrantedScopes = ["email", "profile", "openid"];
-
-        // these are scopes we will need to request after sign in
-        additionalScopes = (getConfigValue("scopes") as? [String] ?? []).filter {
-            return !defaultGrantedScopes.contains($0);
-        };
                 
-        if let forceAuthCodeConfig = getConfigValue("forceCodeForRefreshToken") as? Bool {
-            forceAuthCode = forceAuthCodeConfig;
-        }
-
+        let staticConfigServerClientId = self.getConfigValue("serverClientId") as? String
+        let staticConfigScopes = self.getConfigValue("scopes") as? [String] ?? []
+        
+        self.googleSignInConfiguration = GIDConfiguration.init(clientID: staticConfigClientId,
+                                                               serverClientID: staticConfigServerClientId)
+        self.additionalScopes = self.getAdditionalScopes(scopes: staticConfigScopes)
+        self.forceAuthCode = self.getConfigValue("forceCodeForRefreshToken") as? Bool ?? false
+                
         NotificationCenter.default.addObserver(self, selector: #selector(handleOpenUrl(_ :)), name: Notification.Name(Notification.Name.capacitorOpenURL.rawValue), object: nil);
     }
 
+    /// By passing options in the `initialize` call, you will override values that
+    /// were loaded from static config. The existing values that do not overlap will
+    /// remain unchanged. If both `clientId` and `iosClientId` are passed,
+    /// `iosClientId` will be used.
     @objc
     func initialize(_ call: CAPPluginCall) {
+        let scopes: [String] = call.getArray("scopes", String.self) ?? []
+        let serverClientId: String? = call.getString("serverClientId")
+
+        if let clientId: String = call.getString("clientId") {
+            self.googleSignInConfiguration = GIDConfiguration.init(clientID: clientId,
+                                                                   serverClientID: serverClientId)
+        }
+        // will override clientId if passed
+        if let iosClientId: String = call.getString("iosClientId") {
+            self.googleSignInConfiguration = GIDConfiguration.init(clientID: iosClientId,
+                                                                   serverClientID: serverClientId)
+        }
+        
+        self.forceAuthCode = call.getBool("forceCodeForRefreshToken") ?? false
+        self.additionalScopes = self.getAdditionalScopes(scopes: scopes)
         call.resolve();
     }
 
@@ -163,5 +179,14 @@ public class GoogleAuth: CAPPlugin {
             userData["imageUrl"] = imageUrl;
         }
         signInCall?.resolve(userData);
+    }
+    
+    private func getAdditionalScopes(scopes: [String]) -> [String] {
+        // these are scopes we will need to request after sign in
+        additionalScopes = scopes.filter {
+            return !defaultGrantedScopes.contains($0);
+        };
+        
+        return additionalScopes
     }
 }
