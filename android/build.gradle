@@ -1,7 +1,10 @@
 buildscript {
     repositories {
-        jcenter()
+        mavenCentral()
         google()
+        maven {
+            url 'https://repo.spring.io/libs-milestone'
+        }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:4.2.1'
@@ -34,7 +37,6 @@ repositories {
     google()
     mavenCentral()
 }
-
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
