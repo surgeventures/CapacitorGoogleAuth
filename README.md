@@ -1,13 +1,6 @@
-<h1 align="center">CapacitorGoogleAuth</h1>
-<p align="center"><strong><code>@codetrix-studio/capacitor-google-auth</code></strong></p>
-<p align="center"><strong>CAPACITOR 5</strong></p>
-<p align="center">
+# CapacitorGoogleAuth
+
 Capacitor plugin for Google Auth.
-</p>
-<br>
-<p align="center">
-<a href="https://www.npmjs.com/package/@codetrix-studio/capacitor-google-auth"><img alt="npm" src="https://img.shields.io/npm/v/@codetrix-studio/capacitor-google-auth"></a> <a href="https://www.npmjs.com/package/@codetrix-studio/capacitor-google-auth"><img alt="npm" src="https://img.shields.io/npm/dt/@codetrix-studio/capacitor-google-auth"></a> <a href="https://www.npmjs.com/package/@codetrix-studio/capacitor-google-auth"><img alt="npm" src="https://img.shields.io/npm/dw/@codetrix-studio/capacitor-google-auth"></a> <a href="https://libraries.io/npm/@codetrix-studio%2Fcapacitor-google-auth"><img alt="Dependents (via libraries.io)" src="https://img.shields.io/librariesio/dependents/npm/@codetrix-studio/capacitor-google-auth"></a> <a href="https://packagephobia.com/result?p=@codetrix-studio/capacitor-google-auth"><img alt="install size" src="https://packagephobia.com/badge?p=@codetrix-studio/capacitor-google-auth"></a>
-</p>
 
 ## Contributions
 
@@ -23,8 +16,11 @@ PRs for features that are not aligned with the official Google Auth library are 
 
 #### 1. Install package
 
-```sh
+```bash
 npm i --save @codetrix-studio/capacitor-google-auth
+
+# or for Capacitor 2.x.x
+npm i --save @codetrix-studio/capacitor-google-auth@2.1.3
 ```
 
 #### 2. Update capacitor deps
@@ -33,11 +29,13 @@ npm i --save @codetrix-studio/capacitor-google-auth
 npx cap update
 ```
 
-## Updating
+#### 3. Migrate from 2 to 3 version
 
-If need migrate to different Capacitor versions [see instruction for migrate plugin to new version](#migration-guide).
+if your migrate from Capacitor 2 to Capacitor 3 [see instruction for migrate plugin to new version](#migrate-from-2-to-3)
 
 ## Usage
+
+for capacitor 2.x.x use [instruction](https://github.com/CodetrixStudio/CapacitorGoogleAuth/blob/79129ab37288f5f5d0bb9a568a95890e852cebc2/README.md)
 
 ### WEB
 
@@ -48,13 +46,13 @@ import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 
 // use hook after platform dom ready
 GoogleAuth.initialize({
-  clientId: 'CLIENT_ID.apps.googleusercontent.com',
+  client_id: 'CLIENT_ID.apps.googleusercontent.com',
   scopes: ['profile', 'email'],
   grantOfflineAccess: true,
 });
 ```
 
-or if need use meta tags (Optional):
+or if need use meta tags
 
 ```html
 <meta name="google-signin-client_id" content="{your client id here}" />
@@ -63,7 +61,7 @@ or if need use meta tags (Optional):
 
 #### Options
 
-- `clientId` - The app's client ID, found and created in the Google Developers Console.
+- `client_id` - The app's client ID, found and created in the Google Developers Console.
 - `scopes` – same as [Configure](#Configure) scopes
 - `grantOfflineAccess` – boolean, default `false`, Set if your application needs to refresh access tokens when the user is not present at the browser.
 
@@ -73,7 +71,7 @@ Use it
 GoogleAuth.signIn();
 ```
 
-#### Angular
+#### AngularFire2
 
 init hook
 
@@ -102,20 +100,27 @@ async googleSignIn() {
 
 #### Vue 3
 
-```vue
-<script setup lang="ts">
+```ts
+// App.vue
 import { defineComponent, onMounted } from 'vue';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 
-onMounted(() => {
-  GoogleAuth.initialize();
-});
+export default defineComponent({
+  setup() {
+    onMounted(() => {
+      GoogleAuth.initialize();
+    });
 
-async function logIn() {
-  const response = await GoogleAuth.signIn();
-  console.log(response);
-}
-</script>
+    const logIn = async () => {
+      const response = await GoogleAuth.signIn();
+      console.log(response);
+    };
+
+    return {
+      logIn,
+    };
+  },
+});
 ```
 
 or see more [CapacitorGoogleAuth-Vue3-example](https://github.com/reslear/CapacitorGoogleAuth-Vue3-example)
@@ -132,6 +137,13 @@ or see more [CapacitorGoogleAuth-Vue3-example](https://github.com/reslear/Capaci
       - `iosClientId` - specific key for iOS
       - `clientId` - or common key for Android and iOS
    2. Download `GoogleService-Info.plist` file with `CLIENT_ID` and copy to **ios/App/App** necessarily through Xcode for indexing.
+   3. Configure dynamically using `GoogleSignIn.initialize()` during runtime:
+      - `clientId` - common key for Android and iOS
+      - `iosClientId` - specific key for iOS, which will be preferred if was passed along with `clientId`
+      - `serverClientId` - a 'Web application clientID created at GCP, used for offline access
+      - `scopes` - an array of scopes required at sign in
+      - `forceCodeForRefreshToken` - a boolean that will force user to select the account and get server authCode for offline access
+
 
 plugin first use `iosClientId` if not found use `clientId` if not found use value `CLIENT_ID` from file `GoogleService-Info.plist`
 
@@ -141,12 +153,11 @@ Set **Client ID** :
 
 1. In `capacitor.config.json`
 
-   - `androidClientId` - specific key for Android
-   - `clientId` - or common key for Android and iOS
+   - `serverClientId` - a 'Web application clientID created at GCP. If not found- will fall back to #2.
 
 2. or set inside your `strings.xml`
 
-plugin first use `androidClientId` if not found use `clientId` if not found use value `server_client_id` from file `strings.xml`
+Value from `capacitor.config.json` is the preferred one. If it is missing, a value from `strings.xml` will be used.
 
 ```xml
 <resources>
@@ -154,16 +165,26 @@ plugin first use `androidClientId` if not found use `clientId` if not found use 
 </resources>
 ```
 
+3. or configured dynamically using `GoogleSignIn.initialize()` during runtime:
+
+   - `serverClientId` - a 'Web application clientID created at GCP (will fall back to #2 if not found). Used for offline access.
+   - `scopes` - an array of scopes required at sign in
+   - `forceCodeForRefreshToken` - a boolean that will force user to select the account and get server authCode for offline access
+
+
+In Capacitor 3 plugins are [loaded automatically](https://capacitorjs.com/docs/updating/3-0#switch-to-automatic-android-plugin-loading), so no manual initialization in `MainActivity` is required.
+
 ## Configure
 
 | Name                     | Type     | Description                                                                                                                   |
-| ------------------------ | -------- | ----------------------------------------------------------------------------------------------------------------------------- |
+|--------------------------|----------|-------------------------------------------------------------------------------------------------------------------------------|
 | clientId                 | string   | The app's client ID, found and created in the Google Developers Console.                                                      |
 | iosClientId              | string   | Specific client ID key for iOS                                                                                                |
 | androidClientId          | string   | Specific client ID key for Android                                                                                            |
 | scopes                   | string[] | Scopes that you might need to request to access Google APIs<br>https://developers.google.com/identity/protocols/oauth2/scopes |
 | serverClientId           | string   | This ClientId used for offline access and server side handling                                                                |
 | forceCodeForRefreshToken | boolean  | Force user to select email address to regenerate AuthCode <br>used to get a valid refreshtoken (work on iOS and Android)      |
+
 
 Provide configuration in root `capacitor.config.json`
 
@@ -199,37 +220,6 @@ export default config;
 
 ## Migration guide
 
-#### Migrate from 3.2.x to 3.3.x
-
-Install version 3.3.x:
-
-```sh
-npm i --save @codetrix-studio/capacitor-google-auth^3.3
-```
-
-Follow instruction for you project [Updating from Capacitor 4 to Capacitor 5](https://capacitorjs.com/docs/updating/5-0).
-
-#### Migrate from 3.2.1 to 3.2.2
-
-for `Android` in file `MainActivity.onCreate`
-
-```diff
-- this.init(savedInstanceState, new ArrayList<Class<? extends Plugin>>() {{
--   add(GoogleAuth.class);
-- }});
-+ this.registerPlugin(GoogleAuth.class);
-```
-
-#### Migrate from 3.1.x to 3.2.x
-
-Install version 3.2.x:
-
-```sh
-npm i --save @codetrix-studio/capacitor-google-auth^3.2
-```
-
-Follow instruction for you project [Updating from Capacitor 3 to Capacitor 4](https://capacitorjs.com/docs/updating/4-0).
-
 #### Migrate from 3.0.2 to 3.1.0
 
 ```diff
@@ -238,12 +228,6 @@ Follow instruction for you project [Updating from Capacitor 3 to Capacitor 4](ht
 ```
 
 #### Migrate from 2 to 3
-
-Install version 3.x.x:
-
-```sh
-npm i --save @codetrix-studio/capacitor-google-auth^3.0
-```
 
 After [migrate to Capcitor 3](https://capacitorjs.com/docs/updating/3-0) updating you projects, see diff:
 
@@ -258,17 +242,3 @@ After [migrate to Capcitor 3](https://capacitorjs.com/docs/updating/3-0) updatin
 + GoogleAuth.init()
 + GoogleAuth.signIn()
 ```
-
-#### Migrate from 1 to 2
-
-Install version 2.x.x:
-
-```sh
-npm i --save @codetrix-studio/capacitor-google-auth@2
-```
-
-for capacitor 2.x.x use [instruction](https://github.com/CodetrixStudio/CapacitorGoogleAuth/blob/79129ab37288f5f5d0bb9a568a95890e852cebc2/README.md)
-
-## License
-
-[MIT](./LICENSE)

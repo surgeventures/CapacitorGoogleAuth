@@ -1,6 +1,6 @@
 {
   "name": "@codetrix-studio/capacitor-google-auth",
-  "version": "3.3.2",
+  "version": "3.1.0",
   "description": "Google Auth plugin for capacitor.",
   "main": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
@@ -9,24 +9,23 @@
     "clean": "rm -rf ./dist",
     "watch": "tsc --watch",
     "prepublishOnly": "npm run build",
-    "prepare": "tsc",
-    "test": "echo \"no test specified\""
+    "prepare": "tsc"
   },
   "author": "CodetrixStudio",
   "license": "MIT",
   "devDependencies": {
-    "@capacitor/android": "^5.0.4",
-    "@capacitor/cli": "^5.0.4",
-    "@capacitor/core": "^5.0.4",
-    "@capacitor/ios": "^5.0.4",
+    "@capacitor/android": "^3.2.2",
+    "@capacitor/cli": "^3.2.2",
+    "@capacitor/core": "^3.2.2",
+    "@capacitor/ios": "^3.2.2",
     "@ionic/prettier-config": "^2.0.0",
-    "@types/gapi": "0.0.42",
-    "@types/gapi.auth2": "0.0.56",
-    "prettier": "^2.7.1",
-    "typescript": "^4.7.4"
+    "@types/gapi": "0.0.41",
+    "@types/gapi.auth2": "0.0.55",
+    "prettier": "^2.3.2",
+    "typescript": "^4.4.2"
   },
   "peerDependencies": {
-    "@capacitor/core": "^5.0.0"
+    "@capacitor/core": "^3"
   },
   "files": [
     "dist/",
@@ -56,10 +55,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/CodetrixStudio/CapacitorGoogleAuth"
+    "url": "https://github.com/CodetrixStudio/CapacitorGoogleAuth.git"
   },
   "bugs": {
-    "url": "https://github.com/CodetrixStudio/CapacitorGoogleAuth/issues"
+    "url": "https://github.com/CodetrixStudio/CapacitorGoogleAuth.git/issues"
   },
   "prettier": "@ionic/prettier-config"
 }
