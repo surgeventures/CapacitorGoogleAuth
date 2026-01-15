@@ -86,12 +86,18 @@ public class GoogleAuth: CAPPlugin {
                     if self.additionalScopes.count > 0 {
                         // requesting additional scopes in GoogleSignIn-iOS SDK 6.0 requires that you sign the user in and then request additional scopes,
                         // there's no method to include the additional scopes in the initial sign in request
-                        self.googleSignIn.addScopes(self.additionalScopes, presenting: presentingVc) { user, error in
+                        self.googleSignIn.addScopes(self.additionalScopes, presenting: presentingVc) { userWithScopes, error in
                             if let error = error {
+                                // Indicates the requested scopes have already been granted to the currentUser. Hence we don't realy need it and previous `user` is good for us.
+                                guard !error.localizedDescription.contains("error -8") else {
+                                    print("Duplicated scopes, using previous user");
+                                    self.resolveSignInCallWith(user: user!)
+                                    return
+                                }
                                 self.signInCall?.reject(error.localizedDescription);
                                 return;
                             }
-                            self.resolveSignInCallWith(user: user!);
+                            self.resolveSignInCallWith(user: userWithScopes!);
                         }
                     } else {
                         self.resolveSignInCallWith(user: user!);
