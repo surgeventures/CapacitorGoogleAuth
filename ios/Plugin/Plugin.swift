@@ -73,34 +73,46 @@ public class GoogleAuth: CAPPlugin {
                     self.signInCall?.reject(error.localizedDescription);
                     return;
                 }
-                self.resolveSignInCallWith(user: user!)
+                // Restoring previous sign-in: no serverAuthCode available
+                self.resolveSignInCallWith(user: user!, serverAuthCode: nil)
                 }
             } else {
                 let presentingVc = self.bridge!.viewController!;
-                
-                self.googleSignIn.signIn(with: self.googleSignInConfiguration, presenting: presentingVc) { user, error in
-                    if let error = error {
-                        self.signInCall?.reject(error.localizedDescription, "\(error._code)");
-                        return;
+
+                // GoogleSignIn 8.x API
+                self.googleSignIn.signIn(withPresenting: presentingVc) { signInResult, error in
+                    guard let signInResult = signInResult else {
+                        if let error = error {
+                            self.signInCall?.reject(error.localizedDescription, "\(error._code)");
+                        }
+                        return
                     }
+
+                    // In GoogleSignIn 8.x, user is non-optional
+                    let user = signInResult.user
+                    // serverAuthCode moved from GIDGoogleUser to GIDSignInResult in 7.0+
+                    let serverAuthCode = signInResult.serverAuthCode
+
                     if self.additionalScopes.count > 0 {
-                        // requesting additional scopes in GoogleSignIn-iOS SDK 6.0 requires that you sign the user in and then request additional scopes,
+                        // requesting additional scopes in GoogleSignIn-iOS SDK 6.0+ requires that you sign the user in and then request additional scopes,
                         // there's no method to include the additional scopes in the initial sign in request
-                        self.googleSignIn.addScopes(self.additionalScopes, presenting: presentingVc) { userWithScopes, error in
+                        // GoogleSignIn 7.x+: addScopes moved from GIDSignIn to GIDGoogleUser
+                        user.addScopes(self.additionalScopes, presenting: presentingVc) { scopeResult, error in
+                            let userWithScopes = scopeResult?.user
                             if let error = error {
                                 // Indicates the requested scopes have already been granted to the currentUser. Hence we don't realy need it and previous `user` is good for us.
                                 guard !error.localizedDescription.contains("error -8") else {
                                     print("Duplicated scopes, using previous user");
-                                    self.resolveSignInCallWith(user: user!)
+                                    self.resolveSignInCallWith(user: user, serverAuthCode: serverAuthCode)
                                     return
                                 }
                                 self.signInCall?.reject(error.localizedDescription);
                                 return;
                             }
-                            self.resolveSignInCallWith(user: userWithScopes!);
+                            self.resolveSignInCallWith(user: userWithScopes!, serverAuthCode: serverAuthCode);
                         }
                     } else {
-                        self.resolveSignInCallWith(user: user!);
+                        self.resolveSignInCallWith(user: user, serverAuthCode: serverAuthCode);
                     }
                 };
             }
@@ -114,18 +126,18 @@ public class GoogleAuth: CAPPlugin {
                 call.reject("User not logged in.");
                 return
             }
-            self.googleSignIn.currentUser!.authentication.do { (authentication, error) in
-                guard let authentication = authentication else {
-                    call.reject(error?.localizedDescription ?? "Something went wrong.");
-                    return;
-                }
-                let authenticationData: [String: Any] = [
-                    "accessToken": authentication.accessToken,
-                    "idToken": authentication.idToken ?? NSNull(),
-                    "refreshToken": authentication.refreshToken
-                ]
-                call.resolve(authenticationData);
+            // GoogleSignIn 7.x+: authentication property removed, tokens now directly on GIDGoogleUser
+            guard let user = self.googleSignIn.currentUser else {
+                call.reject("User not logged in.");
+                return
             }
+
+            let authenticationData: [String: Any] = [
+                "accessToken": user.accessToken.tokenString,
+                "idToken": user.idToken?.tokenString ?? NSNull(),  // Only idToken is nullable
+                "refreshToken": user.refreshToken.tokenString
+            ]
+            call.resolve(authenticationData);
         }
     }
 
@@ -173,14 +185,16 @@ public class GoogleAuth: CAPPlugin {
         return nil;
     }
 
-    func resolveSignInCallWith(user: GIDGoogleUser) {
+    func resolveSignInCallWith(user: GIDGoogleUser, serverAuthCode: String?) {
+        // GoogleSignIn 7.x+: authentication property removed, tokens now directly on user
+        // serverAuthCode moved to GIDSignInResult (passed as parameter)
         var userData: [String: Any] = [
             "authentication": [
-                "accessToken": user.authentication.accessToken,
-                "idToken": user.authentication.idToken,
-                "refreshToken": user.authentication.refreshToken
+                "accessToken": user.accessToken.tokenString,
+                "idToken": user.idToken?.tokenString ?? NSNull(),  // Only idToken is nullable
+                "refreshToken": user.refreshToken.tokenString
             ],
-            "serverAuthCode": user.serverAuthCode ?? NSNull(),
+            "serverAuthCode": serverAuthCode ?? NSNull(),
             "email": user.profile?.email ?? NSNull(),
             "familyName": user.profile?.familyName ?? NSNull(),
             "givenName": user.profile?.givenName ?? NSNull(),
