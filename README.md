@@ -1,6 +1,6 @@
 <h1 align="center">CapacitorGoogleAuth</h1>
 <p align="center"><strong><code>@codetrix-studio/capacitor-google-auth</code></strong></p>
-<p align="center"><strong>CAPACITOR 5</strong></p>
+<p align="center"><strong>CAPACITOR 7</strong></p>
 <p align="center">
 Capacitor plugin for Google Auth.
 </p>
