@@ -32,7 +32,8 @@
     "dist/",
     "ios/",
     "android/",
-    "CodetrixStudioCapacitorGoogleAuth.podspec"
+    "CodetrixStudioCapacitorGoogleAuth.podspec",
+    "Package.swift"
   ],
   "keywords": [
     "capacitor",
