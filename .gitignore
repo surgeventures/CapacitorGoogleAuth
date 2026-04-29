@@ -1,7 +1,10 @@
 # See http://help.github.com/ignore-files/ for more about ignoring files.
 
 # compiled output
-/dist
+# /dist is intentionally NOT ignored — surgeventures consumers fetch this
+# package as a github tarball, so the built dist/ must be committed (the
+# upstream pattern relies on `prepare`/tsc running at install time, but
+# pnpm's caching of git-dep packs makes that fragile).
 /tmp
 /out-tsc
 
