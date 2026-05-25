@@ -1,0 +1,24 @@
+version: 1
+generated_at: 2026-05-25T13:06:04Z
+internal: []
+trusted:
+  - action: actions/checkout
+    refs:
+      - v2
+    occurrences:
+      v2:
+        .github/workflows/npmpublish.yml:
+          - jobs.build.steps.[0].uses
+          - jobs.publish-npm.steps.[0].uses
+  - action: actions/setup-node
+    refs:
+      - v1
+    occurrences:
+      v1:
+        .github/workflows/npmpublish.yml:
+          - jobs.build.steps.[1].uses
+          - jobs.publish-npm.steps.[1].uses
+external: []
+local: []
+docker: []
+dynamic: []
