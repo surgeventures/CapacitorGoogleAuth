@@ -1,20 +1,20 @@
 version: 1
-generated_at: 2026-05-25T15:34:22Z
+generated_at: 2026-06-11T15:33:14Z
 internal: []
 trusted:
   - action: actions/checkout
     refs:
-      - v2
+      - ee0669bd1cc54295c223e0bb666b733df41de1c5
     occurrences:
-      v2:
+      ee0669bd1cc54295c223e0bb666b733df41de1c5:
         .github/workflows/npmpublish.yml:
           - jobs.build.steps.[0].uses
           - jobs.publish-npm.steps.[0].uses
   - action: actions/setup-node
     refs:
-      - v1
+      - f1f314fca9dfce2769ece7d933488f076716723e
     occurrences:
-      v1:
+      f1f314fca9dfce2769ece7d933488f076716723e:
         .github/workflows/npmpublish.yml:
           - jobs.build.steps.[1].uses
           - jobs.publish-npm.steps.[1].uses
