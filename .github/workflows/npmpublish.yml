@@ -8,6 +8,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2
+        with:
+          use-policy-store: true
+          api-key: ${{ secrets.GH_FRESHAENGINEERING_STEP_SECURITY_API_KEY }}
+
       - uses: actions/checkout@ee0669bd1cc54295c223e0bb666b733df41de1c5 # v2
       - uses: actions/setup-node@f1f314fca9dfce2769ece7d933488f076716723e # v1
         with:
@@ -19,6 +25,12 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2
+        with:
+          use-policy-store: true
+          api-key: ${{ secrets.GH_FRESHAENGINEERING_STEP_SECURITY_API_KEY }}
+
       - uses: actions/checkout@ee0669bd1cc54295c223e0bb666b733df41de1c5 # v2
       - uses: actions/setup-node@f1f314fca9dfce2769ece7d933488f076716723e # v1
         with:
