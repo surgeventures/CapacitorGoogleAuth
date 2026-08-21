@@ -62,3 +62,5 @@ local.properties
 /android/android.iml
 .swiftpm/
 Package.resolved
+
+.github/actions.lock.yaml

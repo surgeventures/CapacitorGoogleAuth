@@ -18,9 +18,8 @@ jobs:
           api-key: ${{ secrets.GH_FRESHAENGINEERING_STEP_SECURITY_API_KEY }}
 
       - uses: actions/checkout@ee0669bd1cc54295c223e0bb666b733df41de1c5 # v2
-      - uses: actions/setup-node@f1f314fca9dfce2769ece7d933488f076716723e # v1
-        with:
-          node-version: 16
+      - name: Setup mise
+        uses: step-security/mise-action@2796166110dee826668caddd4bffedae5116e7cd # v4.2.0
       - run: npm ci
       - run: npm test
 
@@ -35,11 +34,8 @@ jobs:
           api-key: ${{ secrets.GH_FRESHAENGINEERING_STEP_SECURITY_API_KEY }}
 
       - uses: actions/checkout@ee0669bd1cc54295c223e0bb666b733df41de1c5 # v2
-      - uses: actions/setup-node@f1f314fca9dfce2769ece7d933488f076716723e # v1
-        with:
-          node-version: 16
-          registry-url: https://registry.npmjs.org/
+      - name: Setup mise
+        uses: step-security/mise-action@2796166110dee826668caddd4bffedae5116e7cd # v4.2.0
+      - run: npm set "//registry.npmjs.org/:_authToken" "${{ secrets.NpmToken }}"
       - run: npm ci
       - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.NpmToken}}
