@@ -1,5 +1,5 @@
 version: 1
-generated_at: 2026-06-11T15:33:14Z
+generated_at: 2026-08-21T11:42:01Z
 internal: []
 trusted:
   - action: actions/checkout
@@ -8,17 +8,26 @@ trusted:
     occurrences:
       ee0669bd1cc54295c223e0bb666b733df41de1c5:
         .github/workflows/npmpublish.yml:
-          - jobs.build.steps.[0].uses
-          - jobs.publish-npm.steps.[0].uses
-  - action: actions/setup-node
-    refs:
-      - f1f314fca9dfce2769ece7d933488f076716723e
-    occurrences:
-      f1f314fca9dfce2769ece7d933488f076716723e:
-        .github/workflows/npmpublish.yml:
           - jobs.build.steps.[1].uses
           - jobs.publish-npm.steps.[1].uses
-external: []
+external:
+  - action: step-security/harden-runner
+    refs:
+      - 9af89fc71515a100421586dfdb3dc9c984fbf411
+    occurrences:
+      9af89fc71515a100421586dfdb3dc9c984fbf411:
+        .github/workflows/npmpublish.yml:
+          - jobs.build.steps.[0].uses
+          - jobs.publish-npm.steps.[0].uses
+  - action: step-security/mise-action
+    refs:
+      - 2796166110dee826668caddd4bffedae5116e7cd
+    occurrences:
+      2796166110dee826668caddd4bffedae5116e7cd:
+        .github/workflows/npmpublish.yml:
+          - jobs.build.steps.[2].uses
+          - jobs.publish-npm.steps.[2].uses
 local: []
 docker: []
 dynamic: []
+nested_floating_deps: []
